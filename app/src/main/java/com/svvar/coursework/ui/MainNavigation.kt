@@ -19,13 +19,12 @@ fun MainNavigation() {
     ) { innerPadding ->
         NavHost(
             navController,
-            startDestination = BottomNavItem.Home.route,
+            startDestination = BottomNavItem.Scan.route,
             modifier = Modifier.padding(innerPadding)
         ) {
-//            composable(BottomNavItem.Home.route) { HomeScreen(navController) }
-            composable(BottomNavItem.Scan.route) { ScanQRCodeScreen(navController) }
-            composable(BottomNavItem.Generate.route) { GenerateQRCodeScreen(navController) }
-            composable(BottomNavItem.History.route) { HistoryScreen(navController) }
+            composable(BottomNavItem.Scan.route) { ScanQRCodeScreen() }
+            composable(BottomNavItem.Generate.route) { GenerateQRCodeScreen() }
+            composable(BottomNavItem.History.route) { HistoryScreen() }
         }
     }
 }

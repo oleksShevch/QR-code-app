@@ -1,3 +1,9 @@
 <resources>
     <string name="app_name">course work</string>
+    <string name="qr_type_plain_text">Plain Text</string>
+    <string name="qr_type_url">URL</string>
+    <string name="qr_type_email">Email</string>
+    <string name="qr_type_wifi">Wi-Fi</string>
+    <string name="qr_type_geo_location">Geo-location</string>
+    <string name="qr_type_contact_info">Contact Info</string>
 </resources>

@@ -5,14 +5,10 @@ import android.R
 import android.icu.text.SimpleDateFormat
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.Image
-import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.ArrowBack
-import androidx.compose.material.icons.filled.Delete
 import androidx.compose.material3.*
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
@@ -22,62 +18,30 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.shadow
+import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.ColorFilter
+import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.text.style.TextAlign
+import androidx.compose.ui.text.style.TextOverflow
+import androidx.compose.ui.tooling.preview.Preview
+import androidx.compose.ui.tooling.preview.PreviewParameter
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
-import androidx.navigation.NavController
-import coil.compose.rememberImagePainter
+import coil.compose.rememberAsyncImagePainter
+import coil.request.ImageRequest
 import com.svvar.coursework.data.QRCode
 import com.svvar.coursework.ui.components.QRCodeDetailDialog
+import com.svvar.coursework.utils.RemoveWhiteBackground
 import com.svvar.coursework.viewmodel.QRCodeViewModel
 import java.util.Date
 import java.util.Locale
 
-//@Composable
-//fun HistoryScreen(navController: NavController) {
-//    val historyItems = listOf(
-//        "Scanned: https://openai.com",
-//        "Generated: Wi-Fi Network",
-//        "Scanned: Hello World",
-//        // Add more dummy data
-//    )
-//
-//    Column(
-//        modifier = Modifier
-//            .fillMaxSize()
-//            .padding(24.dp)
-//    ) {
-//        Text(
-//            text = "History",
-//            style = MaterialTheme.typography.displayLarge,
-//            color = MaterialTheme.colorScheme.onBackground,
-//            modifier = Modifier.padding(bottom = 16.dp)
-//        )
-//
-//        LazyColumn {
-//            items(historyItems) { item ->
-//                Card(
-//                    modifier = Modifier
-//                        .fillMaxWidth()
-//                        .padding(vertical = 4.dp),
-//                    shape = MaterialTheme.shapes.medium,
-//                    colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface)
-//                ) {
-//                    Text(
-//                        text = item,
-//                        style = MaterialTheme.typography.bodyLarge,
-//                        color = MaterialTheme.colorScheme.onSurface,
-//                        modifier = Modifier.padding(16.dp)
-//                    )
-//                }
-//            }
-//        }
-//    }
-//}
+
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun HistoryScreen(
-    navController: NavController,
     viewModel: QRCodeViewModel = viewModel()
 ) {
     // Collect the list of QR codes as State
@@ -89,15 +53,15 @@ fun HistoryScreen(
     Scaffold(
         topBar = {
             TopAppBar(
-                title = { Text("QR Code History") },
-                navigationIcon = {
-                    IconButton(onClick = { navController.navigateUp() }) {
-                        Icon(
-                            imageVector = Icons.Filled.ArrowBack,
-                            contentDescription = "Back"
-                        )
-                    }
-                }
+                title = {
+                    Text(
+                        text = "Історія",
+                        textAlign = TextAlign.Center,
+                        modifier = Modifier.fillMaxWidth(),
+                        style = MaterialTheme.typography.displayLarge,
+                    )
+                },
+                modifier = Modifier.padding(12.dp),
             )
         }
     ) { paddingValues ->
@@ -105,33 +69,26 @@ fun HistoryScreen(
             .fillMaxSize()
             .padding(paddingValues)) {
             if (qrCodes.isEmpty()) {
-                // Display a message when there are no QR codes
                 Text(
-                    text = "No QR Codes Found.",
+                    text = "Історія порожня",
                     style = MaterialTheme.typography.headlineSmall,
                     modifier = Modifier.align(Alignment.Center)
                 )
             } else {
-                // Display the list of QR codes in a LazyColumn
                 LazyColumn(
                     modifier = Modifier.fillMaxSize()
                 ) {
                     items(qrCodes) { qrCode ->
                         QRCodeItem(
                             qrCode = qrCode,
-                            onDelete = {
-
-                            },
                             onClick = {
-                                selectedQRCode = qrCode // Set the selected QR code
+                                selectedQRCode = qrCode
                             }
                         )
-                        Divider()
                     }
                 }
             }
 
-            // Show the dialog if a QR code is selected
             selectedQRCode?.let { qr ->
                 QRCodeDetailDialog(
                     qrCode = qr,
@@ -143,77 +100,99 @@ fun HistoryScreen(
 }
 
 
+
 @Composable
 fun QRCodeItem(
     qrCode: QRCode,
-    onDelete: () -> Unit,
     onClick: () -> Unit
 ) {
-    // Format the timestamp to a readable date and time
-    val dateFormat = SimpleDateFormat("dd/MM/yyyy HH:mm", Locale.getDefault())
+    val dateFormat = SimpleDateFormat("dd.MM.yyyy HH:mm", Locale.getDefault())
     val formattedDate = dateFormat.format(Date(qrCode.timestamp))
 
     Card(
         colors = CardDefaults.cardColors(
-            containerColor = MaterialTheme.colorScheme.surface,
+            containerColor = Color(0xFFC9E5FF)
         ),
+        elevation = CardDefaults.cardElevation(defaultElevation = 6.dp),
         modifier = Modifier
             .fillMaxWidth()
             .padding(8.dp)
-            .clickable { onClick() }, // Handle item click
+            .clickable { onClick() },
         border = BorderStroke(1.dp, MaterialTheme.colorScheme.onSurface.copy(alpha = 0.12f)),
     ) {
         Row(
             modifier = Modifier
                 .fillMaxWidth()
-                .padding(16.dp),
+                .height(120.dp)
+                .padding(10.dp),
             verticalAlignment = Alignment.CenterVertically
         ) {
-            // Load the QR code image using Coil
             Image(
-                painter = rememberImagePainter(
-                    data = "file://${qrCode.imagePath}",
-                    builder = {
-                        crossfade(true)
-                        placeholder(android.R.drawable.ic_menu_report_image)
-                        error(android.R.drawable.ic_menu_report_image)
-                    }
+                painter = rememberAsyncImagePainter(
+                    ImageRequest.Builder(LocalContext.current)
+                        .data(data = "file://${qrCode.imagePath}").apply(block = fun ImageRequest.Builder.() {
+                            crossfade(true)
+                            placeholder(R.drawable.ic_menu_report_image)
+                            error(R.drawable.ic_menu_report_image)
+                        })
+                        .transformations(RemoveWhiteBackground())
+                        .build()
                 ),
                 contentDescription = "QR Code Image",
                 modifier = Modifier
-                    .size(64.dp)
-                    .padding(end = 16.dp)
+                    .size(96.dp)
+                    .padding(end = 10.dp),
             )
-            Column(modifier = Modifier.weight(1f)) {
-                Text(
-                    text = qrCode.actionType,
-                    style = MaterialTheme.typography.bodyMedium
-                )
-                Text(
-                    text = qrCode.type,
-                    style = MaterialTheme.typography.bodyMedium
-                )
+            Column(
+                verticalArrangement = Arrangement.Top,
+                modifier = Modifier.fillMaxHeight().padding(top = 4.dp)
+
+            ) {
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    horizontalArrangement = Arrangement.SpaceBetween
+                ) { // Display the action type and type
+                    Text(
+                        text = qrCode.type,
+                        style = MaterialTheme.typography.headlineLarge
+                    )
+                    Column { // Display the action type and type
+                        Text(
+                            text = qrCode.actionType,
+                            style = MaterialTheme.typography.headlineMedium
+                        )
+                        Text(
+                            text = formattedDate,
+                            style = MaterialTheme.typography.headlineMedium
+                        )
+
+                    }
+                }
                 Spacer(modifier = Modifier.height(4.dp))
                 Text(
                     text = qrCode.content,
-                    style = MaterialTheme.typography.bodyMedium
-                )
-                Spacer(modifier = Modifier.height(4.dp))
-                Text(
-                    text = formattedDate,
-                    style = MaterialTheme.typography.bodyMedium
-                )
-            }
-            // Delete Icon Button
-            IconButton(
-                onClick = { onDelete() },
-                modifier = Modifier.padding(start = 8.dp)
-            ) {
-                Icon(
-                    imageVector = Icons.Filled.Delete,
-                    contentDescription = "Delete QR Code"
+                    style = MaterialTheme.typography.bodyMedium,
+                    maxLines = 3,
+                    overflow = TextOverflow.Ellipsis,
+                    modifier = Modifier.fillMaxWidth()
                 )
             }
         }
     }
+}
+
+@Preview
+@Composable
+fun PreviewQRCodeItem() {
+    QRCodeItem(
+        qrCode = QRCode(
+            id = 1,
+            type = "Тип",
+            actionType = "Дія",
+            content = "Зміст",
+            timestamp = System.currentTimeMillis(),
+            imagePath = ""
+        ),
+        onClick = {}
+    )
 }

@@ -18,10 +18,9 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.asImageBitmap
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
-
-import androidx.navigation.NavController
 import com.svvar.coursework.viewmodel.QRCodeViewModel
 import com.svvar.qrcodegen.QRCodeGenerator
 import com.svvar.qrcodegen.ContactInfo
@@ -66,7 +65,7 @@ fun saveImageToGallery(context: Context, bitmap: Bitmap) {
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun GenerateQRCodeScreen(navController: NavController, viewModel: QRCodeViewModel = viewModel()) {
+fun GenerateQRCodeScreen(viewModel: QRCodeViewModel = viewModel()) {
     var selectedType by remember { mutableStateOf("Текст") }
     var qrBitmap by remember { mutableStateOf<Bitmap?>(null) }
     var errorMessage by remember { mutableStateOf<String?>(null) }
@@ -96,7 +95,9 @@ fun GenerateQRCodeScreen(navController: NavController, viewModel: QRCodeViewMode
     var expanded by remember { mutableStateOf(false) }
     var encryptionExpanded by remember { mutableStateOf(false) }
 
-    val qrTypes = listOf("Текст", "URL", "Email", "Wi-Fi", "Geo-location", "Contact Info")
+    val qrTypes = listOf("Текст", "Посилання", "Email", "Wi-Fi", "Геолокація", "Контакт")
+//    val qrTypes = listOf("Plain Text", "URL", "Email", "Wi-Fi", "Geo-location", "Contact Info")
+//    val qrTypes = QRType.values().to
     val encryptionTypes = listOf("None", "WEP", "WPA", "WPA2")
 
     LazyColumn(
@@ -107,13 +108,12 @@ fun GenerateQRCodeScreen(navController: NavController, viewModel: QRCodeViewMode
         item {
             Text(
                 text = "Генерувати QR код",
-                style = MaterialTheme.typography.headlineMedium,
+                style = MaterialTheme.typography.displayLarge,
                 color = MaterialTheme.colorScheme.onBackground,
-                modifier = Modifier.padding(bottom = 24.dp)
+                modifier = Modifier.padding(bottom = 24.dp).fillMaxWidth(),
+                textAlign = TextAlign.Center
             )
         }
-
-        // QR Code Type Selector
 
         item {
             ExposedDropdownMenuBox(
@@ -153,7 +153,6 @@ fun GenerateQRCodeScreen(navController: NavController, viewModel: QRCodeViewMode
 
         item { Spacer(modifier = Modifier.height(16.dp)) }
 
-
         item {
             when (selectedType) {
                 "Текст" -> {
@@ -165,7 +164,7 @@ fun GenerateQRCodeScreen(navController: NavController, viewModel: QRCodeViewMode
                     )
                 }
 
-                "URL" -> {
+                "Посилання" -> {
                     OutlinedTextField(
                         value = inputText,
                         onValueChange = { inputText = it },
@@ -264,7 +263,7 @@ fun GenerateQRCodeScreen(navController: NavController, viewModel: QRCodeViewMode
                     }
                 }
 
-                "Geo-location" -> {
+                "Геолокація" -> {
                     OutlinedTextField(
                         value = latitude,
                         onValueChange = { latitude = it },
@@ -285,7 +284,7 @@ fun GenerateQRCodeScreen(navController: NavController, viewModel: QRCodeViewMode
                     )
                 }
 
-                "Contact Info" -> {
+                "Контакт" -> {
                     OutlinedTextField(
                         value = firstName,
                         onValueChange = { firstName = it },
@@ -307,7 +306,7 @@ fun GenerateQRCodeScreen(navController: NavController, viewModel: QRCodeViewMode
                     OutlinedTextField(
                         value = title,
                         onValueChange = { title = it },
-                        label = { Text("Title") },
+                        label = { Text("Підпис") },
                         modifier = Modifier.fillMaxWidth()
                     )
                     OutlinedTextField(
@@ -348,7 +347,7 @@ fun GenerateQRCodeScreen(navController: NavController, viewModel: QRCodeViewMode
 
                     errorMessage = null
                     qrBitmap = when (selectedType) {
-                        "Plain Text" -> {
+                        "Текст" -> {
                             if (inputText.isBlank()) {
                                 errorMessage = "Введіть текст."
                                 null
@@ -357,7 +356,7 @@ fun GenerateQRCodeScreen(navController: NavController, viewModel: QRCodeViewMode
                             }
                         }
 
-                        "URL" -> {
+                        "Посилання" -> {
                             if (inputText.isBlank()) {
                                 errorMessage = "Введіть посилання."
                                 null
@@ -397,7 +396,7 @@ fun GenerateQRCodeScreen(navController: NavController, viewModel: QRCodeViewMode
                             }
                         }
 
-                        "Geo-location" -> {
+                        "Геолокація" -> {
                             val lat = latitude.toDoubleOrNull()
                             val lon = longitude.toDoubleOrNull()
                             if (lat == null || lon == null) {
@@ -408,7 +407,7 @@ fun GenerateQRCodeScreen(navController: NavController, viewModel: QRCodeViewMode
                             }
                         }
 
-                        "Contact Info" -> {
+                        "Контакт" -> {
                             if (firstName.isBlank() && lastName.isBlank()) {
                                 errorMessage = "Введіть необхідні контактні дані."
                                 null
@@ -431,7 +430,15 @@ fun GenerateQRCodeScreen(navController: NavController, viewModel: QRCodeViewMode
 
                     if (qrBitmap != null) {
                         coroutineScope.launch {
-                            viewModel.saveQRCode(context, selectedType, inputText, qrBitmap!!, "generate")
+                            when (selectedType) {
+                                "Текст" -> viewModel.saveQRCode(context, selectedType, inputText, qrBitmap!!, "Згенеровано")
+                                "Посилання" -> viewModel.saveQRCode(context, selectedType, inputText, qrBitmap!!, "Згенеровано")
+                                "Email" -> viewModel.saveQRCode(context, selectedType, emailAddress, qrBitmap!!, "Згенеровано")
+                                "Wi-Fi" -> viewModel.saveQRCode(context, selectedType, ssid, qrBitmap!!, "Згенеровано")
+                                "Геолокація" -> viewModel.saveQRCode(context, selectedType, "Широта: $latitude\nДовгота: $longitude", qrBitmap!!, "Згенеровано")
+                                "Контакт" -> viewModel.saveQRCode(context, selectedType,
+                                    "Ім'я: $firstName\nПрізвище:$lastName\nТелефон: $phone", qrBitmap!!, "Згенеровано")
+                            }
                         }
                     }
                 },

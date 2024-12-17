@@ -1,6 +1,7 @@
 package com.svvar.coursework.ui.components
 
 import android.R
+import android.content.Intent
 import androidx.compose.runtime.Composable
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.layout.*
@@ -10,9 +11,15 @@ import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.Alignment
+import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
-import coil.compose.rememberImagePainter
+import androidx.core.content.FileProvider
+import coil.compose.rememberAsyncImagePainter
+import coil.request.ImageRequest
 import com.svvar.coursework.data.QRCode
+import java.io.File
 import java.text.SimpleDateFormat
 import java.util.*
 
@@ -22,12 +29,21 @@ fun QRCodeDetailDialog(
     onDismiss: () -> Unit
 ) {
     // Format the timestamp to a readable date and time
-    val dateFormat = SimpleDateFormat("dd/MM/yyyy HH:mm", Locale.getDefault())
+    val dateFormat = SimpleDateFormat("dd.MM.yyyy HH:mm", Locale.getDefault())
     val formattedDate = dateFormat.format(Date(qrCode.timestamp))
+    val context = LocalContext.current
 
     AlertDialog(
         onDismissRequest = onDismiss,
-        title = { Text("QR Code Details") },
+        containerColor = Color(0xFFE4F9FF),
+        title = {
+                Text(
+                    "Деталі коду",
+                    style = MaterialTheme.typography.labelSmall,
+                    textAlign = TextAlign.Center,
+                    modifier = Modifier.fillMaxWidth()
+                )
+                },
         text = {
             Column(
                 horizontalAlignment = Alignment.CenterHorizontally,
@@ -35,13 +51,13 @@ fun QRCodeDetailDialog(
             ) {
                 // Display the larger QR code image
                 Image(
-                    painter = rememberImagePainter(
-                        data = "file://${qrCode.imagePath}",
-                        builder = {
-                            crossfade(true)
-                            placeholder(R.drawable.ic_menu_report_image)
-                            error(R.drawable.ic_menu_report_image)
-                        }
+                    painter = rememberAsyncImagePainter(
+                        ImageRequest.Builder(LocalContext.current)
+                            .data(data = "file://${qrCode.imagePath}").apply(block = fun ImageRequest.Builder.() {
+                                crossfade(true)
+                                placeholder(R.drawable.ic_menu_report_image)
+                                error(R.drawable.ic_menu_report_image)
+                            }).build()
                     ),
                     contentDescription = "QR Code Image",
                     modifier = Modifier
@@ -50,16 +66,37 @@ fun QRCodeDetailDialog(
                 )
                 Spacer(modifier = Modifier.height(16.dp))
                 // Display QR code details
-                Text(text = "Type: ${qrCode.type}", style = MaterialTheme.typography.bodyMedium)
+                Text(text = "Тип: ${qrCode.type}", style = MaterialTheme.typography.labelMedium)
                 Spacer(modifier = Modifier.height(8.dp))
-                Text(text = "Content: ${qrCode.content}", style = MaterialTheme.typography.bodyMedium)
-                Spacer(modifier = Modifier.height(8.dp))
-                Text(text = "Created At: $formattedDate", style = MaterialTheme.typography.bodyMedium)
+                Text(text = qrCode.content, style = MaterialTheme.typography.titleSmall)
+                Spacer(modifier = Modifier.height(16.dp))
+                Text(text = "${qrCode.actionType}: $formattedDate", style = MaterialTheme.typography.titleSmall)
             }
         },
         confirmButton = {
+            TextButton(onClick = {
+                val imageFile = File(qrCode.imagePath)
+                val qrCodeUri = FileProvider.getUriForFile(
+                    context,
+                    "com.svvar.coursework.fileprovider",
+                    imageFile
+                )
+                val shareIntent = Intent().apply {
+                    action = Intent.ACTION_SEND
+                    putExtra(Intent.EXTRA_STREAM, qrCodeUri)
+                    addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION)
+                    type = "image/*"
+                }
+                context.startActivity(Intent.createChooser(shareIntent, "Поділитися кодом"))
+            },
+                modifier = Modifier.padding(start = 50.dp),
+            ) {
+                Text("Поділитися", style = MaterialTheme.typography.titleSmall)
+            }
+        },
+        dismissButton = {
             TextButton(onClick = onDismiss) {
-                Text("Close")
+                Text("Закрити", style = MaterialTheme.typography.titleSmall)
             }
         }
     )

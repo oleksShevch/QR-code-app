@@ -65,14 +65,15 @@ class BarcodeAnalyzer(
                 }
                 ScannedData(
                     type = "Wi-Fi",
-                    data = "SSID: $ssid\nPassword: $password\nEncryption: $encryptionType",
+                    data = "Назва: $ssid\nПароль: $password\nШифрування: $encryptionType",
                     barcode = barcode
                 )
             }
             Barcode.TYPE_URL -> {
                 val url = barcode.url?.url ?: ""
                 ScannedData(
-                    type = "URL",
+                    type = "Посилання",
+//                    type = "URL",
                     data = url,
                     barcode = barcode
                 )
@@ -81,9 +82,13 @@ class BarcodeAnalyzer(
                 val name = barcode.contactInfo?.name?.formattedName ?: ""
                 val phone = barcode.contactInfo?.phones?.firstOrNull()?.number ?: ""
                 val email = barcode.contactInfo?.emails?.firstOrNull()?.address ?: ""
+                val address = barcode.contactInfo?.addresses?.firstOrNull()?.addressLines?.joinToString("\n") ?: ""
+                val organization = barcode.contactInfo?.organization ?: ""
+                val title = barcode.contactInfo?.title ?: ""
                 ScannedData(
-                    type = "Contact Info",
-                    data = "Name: $name\nPhone: $phone\nEmail: $email",
+                    type = "Контакт",
+//                    type = "Contact Info",
+                    data = "Ім'я: $name\nТел.: $phone\nEmail: $email\nАдреса: $address\nОрганізація: $organization\nПосада: $title",
                     barcode = barcode
                 )
             }
@@ -93,7 +98,7 @@ class BarcodeAnalyzer(
                 val body = barcode.email?.body ?: ""
                 ScannedData(
                     type = "Email",
-                    data = "Address: $address\nSubject: $subject\nBody: $body",
+                    data = "Отримувач: $address\nТема: $subject\nТекст: $body",
                     barcode = barcode
                 )
             }
@@ -101,14 +106,16 @@ class BarcodeAnalyzer(
                 val lat = barcode.geoPoint?.lat ?: 0.0
                 val lng = barcode.geoPoint?.lng ?: 0.0
                 ScannedData(
-                    type = "Geo-location",
-                    data = "Latitude: $lat\nLongitude: $lng",
+                    type = "Геолокація",
+//                    type = "Geo-location",
+                    data = "Широта: $lat\nДовгота: $lng",
                     barcode = barcode
                 )
             }
             else -> {
                 ScannedData(
-                    type = "Text",
+                    type = "Текст",
+//                    type = "Text",
                     data = barcode.rawValue ?: "",
                     barcode = barcode
                 )

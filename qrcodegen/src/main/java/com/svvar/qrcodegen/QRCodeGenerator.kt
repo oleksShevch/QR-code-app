@@ -16,11 +16,11 @@ object QRCodeGenerator {
             )
 
             val bitMatrix = QRCodeWriter().encode(content, BarcodeFormat.QR_CODE, width, height, hints)
-            val bitmap = Bitmap.createBitmap(width, height, Bitmap.Config.RGB_565)
+            val bitmap = Bitmap.createBitmap(width, height, Bitmap.Config.RGB_565) //Bitmap.Config.ARGB_8888) //Bitmap.Config.RGB_565)
 
             for (x in 0 until width) {
                 for (y in 0 until height) {
-                    bitmap.setPixel(x, y, if (bitMatrix.get(x, y)) android.graphics.Color.BLACK else android.graphics.Color.WHITE)
+                    bitmap.setPixel(x, y, if (bitMatrix.get(x, y)) android.graphics.Color.BLACK else android.graphics.Color.WHITE)      // WHITE or TRANSPARENT
                 }
             }
             bitmap

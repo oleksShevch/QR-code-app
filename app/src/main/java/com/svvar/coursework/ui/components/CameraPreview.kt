@@ -36,7 +36,6 @@ fun CameraPreview(
             CameraPreviewView(modifier, onBarcodeScanned)
         }
         cameraPermissionState.shouldShowRationale || !cameraPermissionState.permissionRequested -> {
-            // Show a message explaining why the app needs camera permission
             Box(modifier = modifier, contentAlignment = Alignment.Center) {
                 Text("Camera permission is required to scan QR codes.")
             }
