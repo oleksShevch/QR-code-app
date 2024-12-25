@@ -66,9 +66,9 @@ fun QRCodeDetailDialog(
                 )
                 Spacer(modifier = Modifier.height(16.dp))
                 // Display QR code details
-                Text(text = "Тип: ${qrCode.type}", style = MaterialTheme.typography.labelMedium)
+                Text(text = qrCode.type, style = MaterialTheme.typography.labelMedium)
                 Spacer(modifier = Modifier.height(8.dp))
-                Text(text = qrCode.content, style = MaterialTheme.typography.titleSmall)
+                Text(text = qrCode.content, style = MaterialTheme.typography.titleSmall, textAlign = TextAlign.Center)
                 Spacer(modifier = Modifier.height(16.dp))
                 Text(text = "${qrCode.actionType}: $formattedDate", style = MaterialTheme.typography.titleSmall)
             }
@@ -91,12 +91,12 @@ fun QRCodeDetailDialog(
             },
                 modifier = Modifier.padding(start = 50.dp),
             ) {
-                Text("Поділитися", style = MaterialTheme.typography.titleSmall)
+                Text("Поділитися", color = Color(0xFF0070C0), style = MaterialTheme.typography.titleMedium)
             }
         },
         dismissButton = {
             TextButton(onClick = onDismiss) {
-                Text("Закрити", style = MaterialTheme.typography.titleSmall)
+                Text("Закрити", color = Color(0xFF0070C0),  style = MaterialTheme.typography.titleMedium)
             }
         }
     )

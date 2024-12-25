@@ -1,0 +1,9 @@
+<resources>
+    <string name="app_name">Курсова робота</string>
+    <string name="qr_type_plain_text">Текст</string>
+    <string name="qr_type_url">Посилання</string>
+    <string name="qr_type_email">Ел. пошта</string>
+    <string name="qr_type_wifi">Wi-Fi</string>
+    <string name="qr_type_geo_location">Геолокація</string>
+    <string name="qr_type_contact_info">Контакт</string>
+</resources>

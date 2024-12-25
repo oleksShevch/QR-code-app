@@ -18,14 +18,11 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.draw.shadow
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.graphics.ColorFilter
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.tooling.preview.Preview
-import androidx.compose.ui.tooling.preview.PreviewParameter
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import coil.compose.rememberAsyncImagePainter
@@ -44,10 +41,8 @@ import java.util.Locale
 fun HistoryScreen(
     viewModel: QRCodeViewModel = viewModel()
 ) {
-    // Collect the list of QR codes as State
     val qrCodes by viewModel.allQRCodes.collectAsState()
 
-    // State to track the selected QR code for the dialog
     var selectedQRCode by remember { mutableStateOf<QRCode?>(null) }
 
     Scaffold(
@@ -151,12 +146,12 @@ fun QRCodeItem(
                 Row(
                     modifier = Modifier.fillMaxWidth(),
                     horizontalArrangement = Arrangement.SpaceBetween
-                ) { // Display the action type and type
+                ) {
                     Text(
                         text = qrCode.type,
                         style = MaterialTheme.typography.headlineLarge
                     )
-                    Column { // Display the action type and type
+                    Column {
                         Text(
                             text = qrCode.actionType,
                             style = MaterialTheme.typography.headlineMedium

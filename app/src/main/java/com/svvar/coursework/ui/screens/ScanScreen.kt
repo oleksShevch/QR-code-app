@@ -24,13 +24,12 @@ import com.svvar.coursework.ui.components.WiFiConnectDialog
 import com.svvar.coursework.viewmodel.QRCodeViewModel
 import com.svvar.qrcodegen.ContactInfo
 import com.svvar.qrcodegen.QRCodeGenerator
-import kotlinx.coroutines.launch
-
 
 @Composable
 fun ScanQRCodeScreen(viewModel: QRCodeViewModel = viewModel()) {
     var scannedData by remember { mutableStateOf<ScannedData?>(null) }
     var lastScannedData by remember { mutableStateOf<ScannedData?>(null) }
+    var lastScannedTime by remember { mutableStateOf(System.currentTimeMillis()) }
     var isDialogOpen by remember { mutableStateOf(false) }
     var showWiFiDialog by remember { mutableStateOf(false) }
     var showAddContactDialog by remember { mutableStateOf(false) }
@@ -66,9 +65,10 @@ fun ScanQRCodeScreen(viewModel: QRCodeViewModel = viewModel()) {
                     .fillMaxSize()
                     .clip(frameShape),
                 onBarcodeScanned = { data ->
-                    if (!isDialogOpen && lastScannedData?.data != data.data) {
+                    if (!isDialogOpen && lastScannedData?.data != data.data || (System.currentTimeMillis() - lastScannedTime) > 3000) {
                         lastScannedData = data
                         scannedData = data
+                        lastScannedTime = System.currentTimeMillis()
                         when (data.type) {
                             "Wi-Fi" -> showWiFiDialog = true
                             "Контакт" -> showAddContactDialog = true
@@ -107,7 +107,6 @@ fun ScanQRCodeScreen(viewModel: QRCodeViewModel = viewModel()) {
                                 }
                             }
                             else -> {
-                                // Handle plain text or other types
                             }
                         }
                     }
@@ -128,21 +127,13 @@ fun ScanQRCodeScreen(viewModel: QRCodeViewModel = viewModel()) {
         Spacer(modifier = Modifier.height(32.dp))
 
         scannedData?.let { data ->
-//            val transtaleTypes = mapOf(
-//            "Plain Text" to "Текст",
-//            "URL" to "Посилання",
-//            "Email" to "Email",
-//            "Wi-Fi" to "Wi-Fi",
-//            "Geo-location" to "Геолокація",
-//            "Contact Info" to "Контакт"
-//        )
-            // Display scanned data
             Text(
                 text = "Тип: ${data.type}",
                 style = MaterialTheme.typography.bodyLarge,
                 color = MaterialTheme.colorScheme.onBackground,
                 modifier = Modifier.padding(vertical = 8.dp)
             )
+            Spacer(modifier = Modifier.height(8.dp))
             Text(
                 text = "Дані: ${data.data}",
                 style = MaterialTheme.typography.bodyLarge,
@@ -155,7 +146,8 @@ fun ScanQRCodeScreen(viewModel: QRCodeViewModel = viewModel()) {
             Text(
                 text = "QR код не проскановано.",
                 style = MaterialTheme.typography.bodyLarge,
-                color = MaterialTheme.colorScheme.onBackground
+                color = MaterialTheme.colorScheme.onBackground,
+                textAlign = TextAlign.Center
             )
         }
     }
@@ -224,7 +216,7 @@ fun ScanQRCodeScreen(viewModel: QRCodeViewModel = viewModel()) {
 
         WiFiConnectDialog(
             ssid = ssid,
-//            password = password,
+            password = password,
 //            encryptionType = encryption,
             onConfirm = {
                 showWiFiDialog = false

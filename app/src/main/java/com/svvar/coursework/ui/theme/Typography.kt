@@ -1,8 +1,5 @@
 package com.svvar.coursework.ui.theme
-//
 
-
-import android.content.res.Resources.Theme
 import androidx.compose.material3.Typography
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.Color
@@ -49,7 +46,7 @@ val Typography = Typography(
     bodyLarge = TextStyle(
         fontFamily = MontserratFontFamily,
         fontWeight = FontWeight.Normal,
-        fontSize = 16.sp
+        fontSize = 20.sp
     ),
     headlineLarge = TextStyle(
         fontFamily = MontserratFontFamily,
@@ -74,12 +71,17 @@ val Typography = Typography(
     labelMedium = TextStyle(
         fontFamily = RobotoFontFamily,
         fontWeight = FontWeight.Bold,
-        fontSize = 26.sp
+        fontSize = 22.sp
     ),
     titleSmall = TextStyle(
         fontFamily = RobotoFontFamily,
         fontWeight = FontWeight.Normal,
         fontSize = 16.sp
+    ),
+    titleMedium = TextStyle(
+        fontFamily = RobotoFontFamily,
+        fontWeight = FontWeight.Bold,
+        fontSize = 17.sp
     ),
 
 

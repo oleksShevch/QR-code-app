@@ -87,8 +87,16 @@ class BarcodeAnalyzer(
                 val title = barcode.contactInfo?.title ?: ""
                 ScannedData(
                     type = "Контакт",
-//                    type = "Contact Info",
-                    data = "Ім'я: $name\nТел.: $phone\nEmail: $email\nАдреса: $address\nОрганізація: $organization\nПосада: $title",
+                    data = {
+                        val sb = StringBuilder()
+                        if (name.isNotEmpty()) sb.append("Ім'я: $name\n")
+                        if (phone.isNotEmpty()) sb.append("Тел.: $phone")
+                        if (email.isNotEmpty()) sb.append("Email: $email\n")
+                        if (address.isNotEmpty()) sb.append("Адреса: $address\n")
+                        if (organization.isNotEmpty()) sb.append("Організація: $organization\n")
+                        if (title.isNotEmpty()) sb.append("Посада: $title")
+                        sb.toString()
+                    }(),
                     barcode = barcode
                 )
             }
@@ -98,7 +106,13 @@ class BarcodeAnalyzer(
                 val body = barcode.email?.body ?: ""
                 ScannedData(
                     type = "Email",
-                    data = "Отримувач: $address\nТема: $subject\nТекст: $body",
+                    data = {
+                        val sb = StringBuilder()
+                        if (address.isNotEmpty()) sb.append("Ел. пошта: $address\n")
+                        if (subject.isNotEmpty()) sb.append("Тема: $subject\n")
+                        if (body.isNotEmpty()) sb.append("Повідомлення: $body")
+                        sb.toString()
+                    }(),
                     barcode = barcode
                 )
             }
@@ -123,5 +137,4 @@ class BarcodeAnalyzer(
         }
         return data
     }
-
 }

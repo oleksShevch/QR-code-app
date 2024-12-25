@@ -1,7 +1,6 @@
 package com.svvar.coursework.ui.components
 
 import android.Manifest
-import android.content.pm.PackageManager
 import androidx.camera.core.*
 import androidx.camera.lifecycle.ProcessCameraProvider
 import androidx.camera.view.PreviewView
@@ -13,7 +12,6 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.viewinterop.AndroidView
-import androidx.core.content.ContextCompat
 import com.svvar.coursework.model.ScannedData
 import com.google.accompanist.permissions.ExperimentalPermissionsApi
 import com.google.accompanist.permissions.rememberPermissionState
@@ -37,13 +35,12 @@ fun CameraPreview(
         }
         cameraPermissionState.shouldShowRationale || !cameraPermissionState.permissionRequested -> {
             Box(modifier = modifier, contentAlignment = Alignment.Center) {
-                Text("Camera permission is required to scan QR codes.")
+                Text("Доступ до камери потрібен для сканування QR-кодів")
             }
         }
         else -> {
-            // Permission permanently denied
             Box(modifier = modifier, contentAlignment = Alignment.Center) {
-                Text("Camera permission was denied. Please enable it in settings.")
+                Text("У доступі до камери відмовлено. Ви можете надати доступ у налаштуваннях")
             }
         }
     }

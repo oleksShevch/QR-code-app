@@ -10,8 +10,6 @@ import androidx.compose.foundation.Image
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.text.KeyboardOptions
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.ArrowDropDown
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
@@ -72,9 +70,10 @@ fun GenerateQRCodeScreen(viewModel: QRCodeViewModel = viewModel()) {
     val coroutineScope = rememberCoroutineScope()
 
 
-    var context = LocalContext.current
+    val context = LocalContext.current
 
-    var inputText by remember { mutableStateOf("") } // Plain Text, URL
+    var inputText by remember { mutableStateOf("") } // Plain Text
+    var urlText by remember { mutableStateOf("") } // URL
     var emailAddress by remember { mutableStateOf("") } // Email
     var emailSubject by remember { mutableStateOf("") }
     var emailBody by remember { mutableStateOf("") }
@@ -98,7 +97,7 @@ fun GenerateQRCodeScreen(viewModel: QRCodeViewModel = viewModel()) {
     val qrTypes = listOf("Текст", "Посилання", "Email", "Wi-Fi", "Геолокація", "Контакт")
 //    val qrTypes = listOf("Plain Text", "URL", "Email", "Wi-Fi", "Geo-location", "Contact Info")
 //    val qrTypes = QRType.values().to
-    val encryptionTypes = listOf("None", "WEP", "WPA", "WPA2")
+    val encryptionTypes = listOf("WEP", "WPA", "WPA2")
 
     LazyColumn(
         modifier = Modifier
@@ -138,7 +137,7 @@ fun GenerateQRCodeScreen(viewModel: QRCodeViewModel = viewModel()) {
                 ) {
                     qrTypes.forEach { type ->
                         DropdownMenuItem(
-                            text = { Text(type) },
+                            text = { Text(text=type, style = MaterialTheme.typography.titleSmall) },
                             onClick = {
                                 selectedType = type
                                 expanded = false
@@ -166,8 +165,8 @@ fun GenerateQRCodeScreen(viewModel: QRCodeViewModel = viewModel()) {
 
                 "Посилання" -> {
                     OutlinedTextField(
-                        value = inputText,
-                        onValueChange = { inputText = it },
+                        value = urlText,
+                        onValueChange = { urlText = it },
                         label = { Text("Введіть посилання") },
                         modifier = Modifier.fillMaxWidth(),
                         keyboardOptions = KeyboardOptions.Default.copy(
@@ -219,6 +218,7 @@ fun GenerateQRCodeScreen(viewModel: QRCodeViewModel = viewModel()) {
                             keyboardType = androidx.compose.ui.text.input.KeyboardType.Password
                         )
                     )
+
                     ExposedDropdownMenuBox(
                         expanded = encryptionExpanded,
                         onExpandedChange = { encryptionExpanded = !encryptionExpanded }
@@ -228,13 +228,10 @@ fun GenerateQRCodeScreen(viewModel: QRCodeViewModel = viewModel()) {
                             onValueChange = {},
                             label = { Text("Тип шифрування") },
                             trailingIcon = {
-                                Icon(
-                                    Icons.Filled.ArrowDropDown,
-                                    contentDescription = "Dropdown Arrow"
-                                )
+                                ExposedDropdownMenuDefaults.TrailingIcon(expanded = encryptionExpanded)
                             },
                             readOnly = true,
-                            modifier = Modifier.fillMaxWidth()
+                            modifier = Modifier.fillMaxWidth().menuAnchor()
                         )
                         ExposedDropdownMenu(
                             expanded = encryptionExpanded,
@@ -242,10 +239,12 @@ fun GenerateQRCodeScreen(viewModel: QRCodeViewModel = viewModel()) {
                         ) {
                             encryptionTypes.forEach { type ->
                                 DropdownMenuItem(
-                                    text = { Text(type) },
+                                    text = { Text(text=type, style = MaterialTheme.typography.titleSmall) },
                                     onClick = {
                                         encryptionType = type
                                         encryptionExpanded = false
+                                        qrBitmap = null
+                                        errorMessage = null
                                     }
                                 )
                             }
@@ -306,7 +305,7 @@ fun GenerateQRCodeScreen(viewModel: QRCodeViewModel = viewModel()) {
                     OutlinedTextField(
                         value = title,
                         onValueChange = { title = it },
-                        label = { Text("Підпис") },
+                        label = { Text("Посада") },
                         modifier = Modifier.fillMaxWidth()
                     )
                     OutlinedTextField(
@@ -352,16 +351,16 @@ fun GenerateQRCodeScreen(viewModel: QRCodeViewModel = viewModel()) {
                                 errorMessage = "Введіть текст."
                                 null
                             } else {
-                                QRCodeGenerator.generatePlainTextQRCode(inputText, 500, 500)
+                                QRCodeGenerator.generatePlainTextQRCode(inputText, 512, 512)
                             }
                         }
 
                         "Посилання" -> {
-                            if (inputText.isBlank()) {
+                            if (urlText.isBlank()) {
                                 errorMessage = "Введіть посилання."
                                 null
                             } else {
-                                QRCodeGenerator.generateURLQRCode(inputText, 500, 500)
+                                QRCodeGenerator.generateURLQRCode(urlText, 512, 512)
                             }
                         }
 
@@ -369,13 +368,18 @@ fun GenerateQRCodeScreen(viewModel: QRCodeViewModel = viewModel()) {
                             if (emailAddress.isBlank()) {
                                 errorMessage = "Введіть адресу електронної пошти."
                                 null
-                            } else {
+                            }
+                            else if (!android.util.Patterns.EMAIL_ADDRESS.matcher(emailAddress).matches()) {
+                                errorMessage = "Введіть коректну адресу електронної пошти."
+                                null
+                            }
+                            else {
                                 QRCodeGenerator.generateEmailQRCode(
                                     emailAddress,
                                     emailSubject.takeIf { it.isNotBlank() },
                                     emailBody.takeIf { it.isNotBlank() },
-                                    500,
-                                    500
+                                    512,
+                                    512
                                 )
                             }
                         }
@@ -390,8 +394,8 @@ fun GenerateQRCodeScreen(viewModel: QRCodeViewModel = viewModel()) {
                                     password = wifiPassword,
                                     isHidden = isHidden,
                                     encryptionType = encryptionType,
-                                    width = 500,
-                                    height = 500
+                                    width = 512,
+                                    height = 512
                                 )
                             }
                         }
@@ -402,8 +406,13 @@ fun GenerateQRCodeScreen(viewModel: QRCodeViewModel = viewModel()) {
                             if (lat == null || lon == null) {
                                 errorMessage = "Введіть коректні координати."
                                 null
-                            } else {
-                                QRCodeGenerator.generateGeoLocationQRCode(lat, lon, 500, 500)
+                            }
+                            else if (lat < -90 || lat > 90 || lon < -180 || lon > 180) {
+                                errorMessage = "Координати повинні бути в межах:\nШирота: -90 до 90\nДовгота: -180 до 180"
+                                null
+                            }
+                            else {
+                                QRCodeGenerator.generateGeoLocationQRCode(lat, lon, 512, 512)
                             }
                         }
 
@@ -421,7 +430,7 @@ fun GenerateQRCodeScreen(viewModel: QRCodeViewModel = viewModel()) {
                                     email = contactEmail,
                                     address = address
                                 )
-                                QRCodeGenerator.generateContactInfoQRCode(contact, 500, 500)
+                                QRCodeGenerator.generateContactInfoQRCode(contact, 512, 512)
                             }
                         }
 
@@ -432,12 +441,37 @@ fun GenerateQRCodeScreen(viewModel: QRCodeViewModel = viewModel()) {
                         coroutineScope.launch {
                             when (selectedType) {
                                 "Текст" -> viewModel.saveQRCode(context, selectedType, inputText, qrBitmap!!, "Згенеровано")
-                                "Посилання" -> viewModel.saveQRCode(context, selectedType, inputText, qrBitmap!!, "Згенеровано")
-                                "Email" -> viewModel.saveQRCode(context, selectedType, emailAddress, qrBitmap!!, "Згенеровано")
-                                "Wi-Fi" -> viewModel.saveQRCode(context, selectedType, ssid, qrBitmap!!, "Згенеровано")
+                                "Посилання" -> viewModel.saveQRCode(context, selectedType, urlText, qrBitmap!!, "Згенеровано")
+                                "Email" -> {
+                                    val emailText = buildString {
+                                        append("Адреса: $emailAddress\n")
+                                        if (emailSubject.isNotBlank()) append("Тема: $emailSubject\n")
+                                        if (emailBody.isNotBlank()) append("Текст: $emailBody")
+                                    }
+                                    viewModel.saveQRCode(context, selectedType, emailText, qrBitmap!!, "Згенеровано")
+                                }
+                                "Wi-Fi" -> {
+                                    val wifiText = buildString {
+                                        append("Назва: $ssid\n")
+                                        append("Пароль: $wifiPassword\n")
+                                        append("Шифрування: $encryptionType\n")
+                                        append("Прихована мережа: ${if (isHidden) "Так" else "Ні"}")
+                                    }
+                                    viewModel.saveQRCode(context, selectedType, wifiText, qrBitmap!!, "Згенеровано")
+                                }
                                 "Геолокація" -> viewModel.saveQRCode(context, selectedType, "Широта: $latitude\nДовгота: $longitude", qrBitmap!!, "Згенеровано")
-                                "Контакт" -> viewModel.saveQRCode(context, selectedType,
-                                    "Ім'я: $firstName\nПрізвище:$lastName\nТелефон: $phone", qrBitmap!!, "Згенеровано")
+                                "Контакт" -> {
+                                    val contactText = buildString {
+                                        if (firstName.isNotBlank()) append("Ім'я: $firstName\n")
+                                        if (lastName.isNotBlank()) append("Прізвище: $lastName\n")
+                                        if (organization.isNotBlank()) append("Організація: $organization\n")
+                                        if (title.isNotBlank()) append("Посада: $title\n")
+                                        if (phone.isNotBlank()) append("Телефон: $phone\n")
+                                        if (contactEmail.isNotBlank()) append("Email: $contactEmail\n")
+                                        if (address.isNotBlank()) append("Адреса: $address")
+                                    }
+                                    viewModel.saveQRCode(context, selectedType, contactText, qrBitmap!!, "Згенеровано")
+                                }
                             }
                         }
                     }
@@ -449,7 +483,7 @@ fun GenerateQRCodeScreen(viewModel: QRCodeViewModel = viewModel()) {
                     contentColor = MaterialTheme.colorScheme.onPrimary
                 )
             ) {
-                Text("Генерувати")
+                Text(text="Генерувати", style = MaterialTheme.typography.headlineLarge)
             }
         }
 
@@ -459,8 +493,9 @@ fun GenerateQRCodeScreen(viewModel: QRCodeViewModel = viewModel()) {
                 Text(
                     text = msg,
                     color = MaterialTheme.colorScheme.error,
-                    style = MaterialTheme.typography.bodyMedium,
-                    modifier = Modifier.padding(vertical = 4.dp)
+                    style = MaterialTheme.typography.labelMedium,
+                    modifier = Modifier.padding(vertical = 4.dp).fillMaxWidth(),
+                    textAlign = TextAlign.Center
                 )
             }
         }
@@ -488,7 +523,7 @@ fun GenerateQRCodeScreen(viewModel: QRCodeViewModel = viewModel()) {
                     modifier = Modifier.fillMaxWidth(),
                     shape = MaterialTheme.shapes.medium
                 ) {
-                    Text("Зберегти в галерею")
+                    Text(text = "Зберегти в галерею", style = MaterialTheme.typography.headlineLarge)
                 }
             }
         }
